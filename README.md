@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Carrlo
 
-## Getting Started
+Carrlo is a pilot-first vehicle rental and fleet management SaaS. This repository is being built as a modular Next.js application with real persistence, authentication, tenant isolation, booking conflict rules, financial records, and operational reporting.
 
-First, run the development server:
+## Current Modules
+
+- Auth.js credentials sign-in.
+- Organization, membership, branch, vehicle, customer, booking, payment, maintenance, inspection, damage, file metadata, and audit-log schema.
+- Dashboard metrics from persisted data.
+- Vehicle inventory, customer registration, confirmed bookings, pickup, return, and manual payment recording.
+- Unit tests for core business rules.
+
+## Stack
+
+- Next.js App Router
+- React
+- TypeScript, incrementally adopted
+- Material UI plus Tailwind CSS
+- PostgreSQL
+- Prisma
+- Auth.js credentials auth
+- Zod
+- Vitest
+
+## Environment
+
+Copy `.env.example` to `.env` and configure:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/carrlo_dev?schema=public"
+TEST_DATABASE_URL="postgresql://postgres:postgres@localhost:5432/carrlo_test?schema=public"
+AUTH_SECRET="replace-with-a-long-random-secret"
+AUTH_URL="http://localhost:3000"
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Use a development database only. Do not point seeds or tests at production data.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Local Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+```bash
+npm install
+npm run db:generate
+npm run db:migrate
+npm run db:seed
+npm run dev
+```
 
-## Learn More
+Seed credentials:
 
-To learn more about Next.js, take a look at the following resources:
+```text
+owner@carrlo.test
+CarrloDemo123!
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Checks
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+```bash
+npm run typecheck
+npm run lint
+npm run test
+npm run build
+```
 
-## Deploy on Vercel
+`npm run test:e2e` is reserved for Playwright once browser workflows are fully scripted.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Important Rules
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+- Money is stored as integer minor units with explicit currency.
+- Booking intervals are half-open: `[startsAt, endsAt)`.
+- Confirmed and active bookings block vehicle availability.
+- Scheduled and in-progress maintenance blocks vehicle availability.
+- Booking creation locks the vehicle row inside a transaction before conflict checks.
+- Tenant isolation and RBAC checks must happen on the server.
+- Private file support is modeled but production object storage is not yet configured.
+
+## Current Limitations
+
+This is not yet pilot-complete. See `docs/IMPLEMENTATION_STATUS.md` for exact status, blocked checks, and next steps.

@@ -1,200 +1,146 @@
 "use client";
+
 import * as React from "react";
-import PropTypes from "prop-types";
-import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
-import CssBaseline from "@mui/material/CssBaseline";
-import Divider from "@mui/material/Divider";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
-import InboxIcon from "@mui/icons-material/MoveToInbox";
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
-import MailIcon from "@mui/icons-material/Mail";
+import Avatar from "@mui/material/Avatar";
 import MenuIcon from "@mui/icons-material/Menu";
-import Toolbar from "@mui/material/Toolbar";
-import Typography from "@mui/material/Typography";
+import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
+import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
+import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
+import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
+import PaymentsRoundedIcon from "@mui/icons-material/PaymentsRounded";
+import BarChartRoundedIcon from "@mui/icons-material/BarChartRounded";
+import BuildRoundedIcon from "@mui/icons-material/BuildRounded";
+import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
+import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
+import Link from "next/link";
 import Image from "next/image";
-import { Avatar } from "@mui/material";
+import { usePathname } from "next/navigation";
 
-const drawerWidth = 240;
+const navItems = [
+  { text: "Overview", href: "/dashboard", icon: HomeRoundedIcon },
+  { text: "Fleet", href: "/dashboard/vehicles", icon: DirectionsCarRoundedIcon },
+  { text: "Customers", href: "/dashboard/customers", icon: PeopleAltRoundedIcon },
+  { text: "Bookings", href: "/dashboard/bookings", icon: CalendarMonthRoundedIcon },
+  { text: "Payments", href: "/dashboard/payments", icon: PaymentsRoundedIcon },
+  { text: "Service", href: "/dashboard/fleet", icon: BuildRoundedIcon },
+  { text: "Reports", href: "/dashboard/reports", icon: BarChartRoundedIcon },
+];
 
-function ResponsiveDrawer(props) {
-  const { window } = props;
-  const [mobileOpen, setMobileOpen] = React.useState(false);
-  const [isClosing, setIsClosing] = React.useState(false);
-
-  const handleDrawerClose = () => {
-    setIsClosing(true);
-    setMobileOpen(false);
-  };
-
-  const handleDrawerTransitionEnd = () => {
-    setIsClosing(false);
-  };
-
-  const handleDrawerToggle = () => {
-    if (!isClosing) {
-      setMobileOpen(!mobileOpen);
-    }
-  };
-
-  const drawer = (
-    <div>
-      <Toolbar>
-        <Typography className="font-semibold text-xl mx-5 text-[#252525]">
-          Carrlo
-        </Typography>
-      </Toolbar>{" "}
-      <List>
-        {[
-          { text: "Dashboard", src: "/D-icon.svg" },
-          { text: "Car Inventory", src: "/CI-icon.svg" },
-          { text: "Booking Request", src: "/BR-icon.svg" },
-          { text: "Booking", src: "/B-icon.svg" },
-          { text: "Fleet Management", src: "/FM-icoon.svg" },
-          { text: "Payment Management", src: "/PM-icon.svg" },
-          { text: "Report & Analytics", src: "/RA-icon.svg" },
-        ].map(({ text, src }, index) => (
-          <ListItem key={text} disablePadding>
-            <ListItemButton>
-              <Image
-                src={src}
-                alt={text}
-                width={20}
-                height={20}
-                className="mx-3"
-              />
-              <ListItemText primary={text} className="text-[#2525255C]" />
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
-    </div>
-  );
-
-  // Remove this const when copying and pasting into your project.
-  const container =
-    window !== undefined ? () => window().document.body : undefined;
+function NavLinks({ onNavigate }) {
+  const pathname = usePathname();
 
   return (
-    <Box sx={{ display: "flex", flexGrow: 1 }}>
-      <AppBar
-        position="fixed"
-        elevation={0}
-        sx={{
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          ml: { sm: `${drawerWidth}px` },
-          backgroundColor: "#FDFBF9",
-        }}
-      >
-        <Toolbar
-          sx={{
-            display: "flex",
-            justifyContent: "space-between", // Align elements with space-between
-            alignItems: "center", // Center elements vertically
-          }}
-        >
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            <IconButton
-              color="inherit"
-              aria-label="open drawer"
-              edge="start"
-              onClick={handleDrawerToggle}
-              sx={{ mr: 2, display: { sm: "none" }, color: "#2525255C" }}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Typography
-              variant="p"
-              noWrap
-              sx={{ color: "#252525" }}
-              component="div"
-            >
-              Responsive drawer
-            </Typography>
-          </Box>
-          <Box sx={{ alignItems: "center", display: "flex", gap: "5px" }}>
-            <Avatar sx={{ backgroundColor: "#fcf3e1", alignItems: "center" }}>
-              <Image width={20} height={20} src={"/notification-icon.svg"} />
-            </Avatar>
-            <Box className="flex justify-between items-center pr-2 *:focus:border-none rounded-full text-[#F6A60C] bg-[#fcf3e1]">
-              <Avatar className="mt-2" src="/account-img.png" />
+    <nav className="flex flex-col gap-2 lg:flex-row lg:items-center">
+      {navItems.map((item) => {
+        const Icon = item.icon;
+        const active =
+          pathname === item.href ||
+          (item.href !== "/dashboard" && pathname?.startsWith(item.href));
 
-              <select className="bg-[#fcf3e1] border-none rounded-full">
-                <option>William John</option>
-              </select>
-            </Box>
-          </Box>
-        </Toolbar>
-      </AppBar>
-
-      <Box
-        component="nav"
-        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
-      >
-        {/* The implementation can be swapped with js to avoid SEO duplication of links. */}
-        <Drawer
-          container={container}
-          variant="temporary"
-          open={mobileOpen}
-          onTransitionEnd={handleDrawerTransitionEnd}
-          onClose={handleDrawerClose}
-          ModalProps={{
-            keepMounted: true, // Better open performance on mobile.
-          }}
-          sx={{
-            display: { xs: "block", sm: "none" },
-            "& .MuiDrawer-paper": {
-              boxSizing: "border-box",
-              width: drawerWidth,
-              backgroundColor: "#FDFBF9",
-              borderRight: "none",
-            },
-          }}
-        >
-          {drawer}
-        </Drawer>
-        <Drawer
-          variant="permanent"
-          sx={{
-            display: { xs: "none", sm: "block" },
-            "& .MuiDrawer-paper": {
-              boxSizing: "border-box",
-              width: drawerWidth,
-              borderRight: "none",
-              backgroundColor: "#FDFBF9",
-            },
-          }}
-          open
-        >
-          {drawer}
-        </Drawer>
-      </Box>
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          p: 3,
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-        }}
-      >
-        <Toolbar />
-        {props.children}
-      </Box>
-    </Box>
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={onNavigate}
+            className={`flex h-12 items-center gap-2 rounded-full px-5 text-sm font-medium transition ${
+              active
+                ? "bg-black text-white shadow-sm"
+                : "bg-white/70 text-[#5e5a56] hover:bg-white"
+            }`}
+          >
+            <Icon fontSize="small" />
+            <span>{item.text}</span>
+          </Link>
+        );
+      })}
+    </nav>
   );
 }
 
-ResponsiveDrawer.propTypes = {
-  /**
-   * Injected by the documentation to work in an iframe.
-   * Remove this when copying and pasting into your project.
-   */
-  window: PropTypes.func,
-};
+function ResponsiveDrawer(props) {
+  const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = React.useState(false);
+
+  if (pathname?.startsWith("/sign-in")) {
+    return props.children;
+  }
+
+  return (
+    <Box className="min-h-screen bg-[#b8b5b5] p-3 text-[#161412] sm:p-6 lg:p-10">
+      <Box className="mx-auto min-h-[calc(100vh-48px)] max-w-[1720px] rounded-[28px] border-4 border-white bg-[#eeeae5] p-4 shadow-[0_24px_80px_rgba(37,37,37,0.16)] sm:p-6">
+        <header className="mb-8 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <IconButton
+              aria-label="Open navigation"
+              onClick={() => setMobileOpen(true)}
+              sx={{
+                display: { lg: "none" },
+                backgroundColor: "white",
+                width: 48,
+                height: 48,
+              }}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Link href="/dashboard" className="text-3xl font-bold tracking-[0]">
+              Carrlo
+            </Link>
+          </div>
+
+          <div className="hidden lg:block">
+            <NavLinks />
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="hidden h-12 items-center gap-2 rounded-full bg-white/80 px-5 text-sm text-[#6b6762] md:flex">
+              <PlaceOutlinedIcon fontSize="small" />
+              Main Branch
+            </div>
+            <div className="hidden h-12 items-center gap-2 rounded-full bg-white/80 px-5 text-sm text-[#6b6762] md:flex">
+              <AccessTimeRoundedIcon fontSize="small" />
+              Operations
+            </div>
+            <IconButton
+              aria-label="Search"
+              sx={{ width: 48, height: 48, backgroundColor: "white" }}
+            >
+              <SearchRoundedIcon />
+            </IconButton>
+            <Avatar sx={{ width: 48, height: 48 }}>
+              <Image
+                src="/account-img.png"
+                alt="Account"
+                width={48}
+                height={48}
+              />
+            </Avatar>
+          </div>
+        </header>
+
+        <main>{props.children}</main>
+      </Box>
+
+      <Drawer
+        open={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+        PaperProps={{
+          sx: {
+            width: 300,
+            backgroundColor: "#eeeae5",
+            borderRight: "none",
+            p: 2,
+          },
+        }}
+      >
+        <div className="mb-6 px-3 pt-3 text-3xl font-bold">Carrlo</div>
+        <NavLinks onNavigate={() => setMobileOpen(false)} />
+      </Drawer>
+    </Box>
+  );
+}
 
 export default ResponsiveDrawer;

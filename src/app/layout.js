@@ -1,6 +1,5 @@
 import localFont from "next/font/local";
 import "./globals.css";
-import Buttoncomp from "./components/Button";
 import ResponsiveDrawer from "./components/Drawer";
 
 const geistSans = localFont({
@@ -22,13 +21,14 @@ const geistMono = localFont({
 
 export const metadata = {
   title: "Carrlo",
+  description: "Vehicle rental and fleet management SaaS",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased w-screen h-screen`}
+        className={`${geistSans.variable} ${geistMono.variable} min-h-screen antialiased`}
       >
         <ResponsiveDrawer>{children}</ResponsiveDrawer>{" "}
       </body>

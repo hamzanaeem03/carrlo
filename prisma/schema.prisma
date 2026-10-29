@@ -1,0 +1,389 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  OWNER
+  MANAGER
+  STAFF
+  FINANCE
+}
+
+enum MembershipStatus {
+  ACTIVE
+  INVITED
+  DISABLED
+}
+
+enum VehicleStatus {
+  AVAILABLE
+  RENTED
+  MAINTENANCE
+  UNAVAILABLE
+  ARCHIVED
+}
+
+enum Transmission {
+  AUTOMATIC
+  MANUAL
+}
+
+enum FuelType {
+  PETROL
+  DIESEL
+  HYBRID
+  ELECTRIC
+  OTHER
+}
+
+enum BookingStatus {
+  REQUESTED
+  PENDING
+  CONFIRMED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  REJECTED
+}
+
+enum PaymentKind {
+  CHARGE
+  PAYMENT
+  REFUND
+  DEPOSIT_HELD
+  DEPOSIT_RELEASED
+  ADJUSTMENT
+}
+
+enum MaintenanceStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum InspectionType {
+  PICKUP
+  RETURN
+  AD_HOC
+}
+
+enum DamageStatus {
+  OPEN
+  REPAIRING
+  RESOLVED
+  WRITTEN_OFF
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  STATUS_CHANGE
+  PAYMENT_RECORDED
+  PICKUP_RECORDED
+  RETURN_RECORDED
+}
+
+model User {
+  id           String       @id @default(cuid())
+  name         String
+  email        String       @unique
+  passwordHash String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  memberships  Membership[]
+  auditLogs    AuditLog[]
+}
+
+model Organization {
+  id           String        @id @default(cuid())
+  name         String
+  currency     String        @default("USD")
+  timezone     String        @default("UTC")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  memberships  Membership[]
+  branches     Branch[]
+  vehicles     Vehicle[]
+  customers    Customer[]
+  bookings     Booking[]
+  payments     PaymentTransaction[]
+  maintenance  MaintenanceRecord[]
+  auditLogs    AuditLog[]
+}
+
+model Membership {
+  id             String           @id @default(cuid())
+  userId         String
+  organizationId String
+  role           Role
+  status         MembershipStatus @default(ACTIVE)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([organizationId, role])
+}
+
+model Branch {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  address        String?
+  timezone       String       @default("UTC")
+  isDefault      Boolean      @default(false)
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  vehicles       Vehicle[]
+  customers      Customer[]
+  bookings       Booking[]
+  maintenance    MaintenanceRecord[]
+
+  @@index([organizationId, isActive])
+}
+
+model Vehicle {
+  id                String              @id @default(cuid())
+  organizationId    String
+  branchId          String
+  registration      String
+  make              String
+  model             String
+  year              Int
+  category          String
+  transmission      Transmission?
+  fuelType          FuelType?
+  odometer          Int                 @default(0)
+  seats             Int                 @default(4)
+  dailyRateMinor    Int
+  depositMinor      Int                 @default(0)
+  currency          String              @default("USD")
+  status            VehicleStatus       @default(AVAILABLE)
+  description       String?
+  notes             String?
+  archivedAt        DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  organization      Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  branch            Branch              @relation(fields: [branchId], references: [id])
+  bookings          Booking[]
+  documents         FileAsset[]
+  maintenance       MaintenanceRecord[]
+  inspections       Inspection[]
+  damageRecords     DamageRecord[]
+
+  @@unique([organizationId, registration])
+  @@index([organizationId, status])
+  @@index([branchId, status])
+}
+
+model Customer {
+  id                  String       @id @default(cuid())
+  organizationId      String
+  branchId            String?
+  name                String
+  email               String?
+  phone               String
+  address             String?
+  licenseNumber       String?
+  licenseExpiry       DateTime?
+  notes               String?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  organization         Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  branch               Branch?      @relation(fields: [branchId], references: [id])
+  bookings             Booking[]
+  documents            FileAsset[]
+
+  @@index([organizationId, name])
+  @@index([organizationId, phone])
+}
+
+model Booking {
+  id                  String                 @id @default(cuid())
+  organizationId      String
+  branchId            String
+  customerId          String
+  vehicleId           String
+  reference           String
+  status              BookingStatus          @default(PENDING)
+  startsAt            DateTime
+  endsAt              DateTime
+  actualPickupAt      DateTime?
+  actualReturnAt      DateTime?
+  pickupOdometer      Int?
+  returnOdometer      Int?
+  pickupFuelLevel     String?
+  returnFuelLevel     String?
+  dailyRateMinor      Int
+  depositMinor        Int                    @default(0)
+  chargesMinor        Int
+  discountMinor       Int                    @default(0)
+  taxMinor            Int                    @default(0)
+  totalMinor          Int
+  currency            String                 @default("USD")
+  notes               String?
+  cancellationReason  String?
+  createdById         String?
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+  organization         Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  branch               Branch                 @relation(fields: [branchId], references: [id])
+  customer             Customer               @relation(fields: [customerId], references: [id])
+  vehicle              Vehicle                @relation(fields: [vehicleId], references: [id])
+  statusHistory        BookingStatusHistory[]
+  payments             PaymentTransaction[]
+  inspections          Inspection[]
+  damageRecords        DamageRecord[]
+
+  @@unique([organizationId, reference])
+  @@index([organizationId, status, startsAt])
+  @@index([vehicleId, startsAt, endsAt])
+  @@index([customerId, startsAt])
+}
+
+model BookingStatusHistory {
+  id          String        @id @default(cuid())
+  bookingId   String
+  fromStatus  BookingStatus?
+  toStatus    BookingStatus
+  reason      String?
+  createdById String?
+  createdAt   DateTime      @default(now())
+  booking     Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId, createdAt])
+}
+
+model PaymentTransaction {
+  id              String       @id @default(cuid())
+  organizationId  String
+  bookingId       String?
+  kind            PaymentKind
+  amountMinor     Int
+  currency        String       @default("USD")
+  method          String?
+  reference       String?
+  idempotencyKey  String?
+  notes           String?
+  occurredAt      DateTime     @default(now())
+  createdById     String?
+  createdAt       DateTime     @default(now())
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  booking         Booking?     @relation(fields: [bookingId], references: [id])
+
+  @@unique([organizationId, idempotencyKey])
+  @@index([organizationId, kind, occurredAt])
+  @@index([bookingId, occurredAt])
+}
+
+model MaintenanceRecord {
+  id               String            @id @default(cuid())
+  organizationId   String
+  branchId         String
+  vehicleId        String
+  status           MaintenanceStatus @default(SCHEDULED)
+  startsAt         DateTime?
+  endsAt           DateTime?
+  odometer         Int?
+  description      String
+  costMinor        Int               @default(0)
+  currency         String            @default("USD")
+  notes            String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  branch           Branch            @relation(fields: [branchId], references: [id])
+  vehicle          Vehicle           @relation(fields: [vehicleId], references: [id])
+
+  @@index([organizationId, status, startsAt])
+  @@index([vehicleId, startsAt, endsAt])
+}
+
+model Inspection {
+  id              String         @id @default(cuid())
+  vehicleId       String
+  bookingId       String?
+  type            InspectionType
+  odometer        Int?
+  fuelLevel       String?
+  conditionNotes  String?
+  createdById     String?
+  createdAt       DateTime       @default(now())
+  vehicle         Vehicle        @relation(fields: [vehicleId], references: [id])
+  booking         Booking?       @relation(fields: [bookingId], references: [id])
+  damageRecords   DamageRecord[]
+
+  @@index([vehicleId, createdAt])
+  @@index([bookingId, type])
+}
+
+model DamageRecord {
+  id                 String       @id @default(cuid())
+  vehicleId          String
+  bookingId          String?
+  inspectionId       String?
+  status             DamageStatus @default(OPEN)
+  description        String
+  estimatedCostMinor Int          @default(0)
+  finalCostMinor     Int          @default(0)
+  currency           String       @default("USD")
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  vehicle            Vehicle      @relation(fields: [vehicleId], references: [id])
+  booking            Booking?     @relation(fields: [bookingId], references: [id])
+  inspection         Inspection?  @relation(fields: [inspectionId], references: [id])
+
+  @@index([vehicleId, status])
+  @@index([bookingId])
+}
+
+model FileAsset {
+  id             String   @id @default(cuid())
+  organizationId String
+  vehicleId      String?
+  customerId     String?
+  storageKey     String
+  fileName       String
+  mimeType       String
+  sizeBytes      Int
+  documentType   String
+  expiresAt      DateTime?
+  createdById    String?
+  createdAt      DateTime @default(now())
+  vehicle        Vehicle? @relation(fields: [vehicleId], references: [id])
+  customer       Customer? @relation(fields: [customerId], references: [id])
+
+  @@index([organizationId, documentType])
+  @@index([vehicleId])
+  @@index([customerId])
+}
+
+model AuditLog {
+  id             String       @id @default(cuid())
+  organizationId String?
+  actorUserId    String?
+  action         AuditAction
+  entityType     String
+  entityId       String?
+  message        String
+  metadata       Json?
+  createdAt      DateTime     @default(now())
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  actor          User?        @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@index([actorUserId, createdAt])
+}

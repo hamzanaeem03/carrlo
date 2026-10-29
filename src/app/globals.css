@@ -3,25 +3,31 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #b8b5b5;
+  --foreground: #161412;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  .soft-panel {
+    @apply rounded-[22px] bg-white/90 shadow-[0_18px_45px_rgba(45,39,33,0.08)];
+  }
+
+  .soft-field {
+    @apply rounded-2xl border border-transparent bg-[#f6f3ef] px-4 py-3 text-sm outline-none transition focus:border-black/20 focus:bg-white;
+  }
+
+  .status-pill {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold;
   }
 }
